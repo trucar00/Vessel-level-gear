@@ -1,0 +1,2 @@
+TO DO:
+- Only include vessels with activity flag = I fiske, setting av redskap etc
