@@ -1,6 +1,6 @@
 import pandas as pd
-from xgboost import XGBClassifier
-from xgboost import plot_importance
+import numpy as np
+from xgboost import XGBClassifier, plot_importance
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder
@@ -17,12 +17,14 @@ import matplotlib.pyplot as plt
 #path = kagglehub.dataset_download("sjleshrac/airlines-customer-satisfaction")
 #print(path)
 
-steam = pd.read_csv(f"Data/all_steaming_segs.csv")
-longline = pd.read_csv("Data/line_fishing_segs.csv")
-trawl = pd.read_csv("Data/trawl_fishing_segs.csv")
+steam = pd.read_csv(f"XGB/all_steaming_segs.csv")
+longline = pd.read_csv("XGB/line_fishing_segs.csv")
+trawl = pd.read_csv("XGB/trawl_fishing_segs.csv")
 
 steam["label"] = "steam"
 steam = steam.drop(columns=["steaming", "Unnamed: 0"])
+
+longline = longline[longline["mmsi"] != 257056730]
 
 df = pd.concat([steam, trawl, longline], ignore_index=True)
 print("Class distribution:\n", df["label"].value_counts())
@@ -79,6 +81,16 @@ sample_weight_train = compute_sample_weight(class_weight="balanced", y=y_train)
 
 xgb_cv.fit(X_train, y_train, sample_weight=sample_weight_train)
 
+test_liner = pd.read_csv("XGB/test_segments_line.csv")
+X_check = test_liner.drop(columns=["label", "mmsi", "trajectory_id", "segment_id"])
+
+y_check = xgb_cv.predict(X_check)
+seg_check_ids = np.arange(len(y_check))
+
+checked = pd.DataFrame({"segment_id": seg_check_ids, "pred": y_check})
+checked.to_csv("checked.csv", index=False)
+
+
 print("\nBest params:", xgb_cv.best_params_)
 print(f"Best CV f1_macro: {xgb_cv.best_score_:.4f}")
 
@@ -112,3 +124,5 @@ plot_importance(xgb_cv.best_estimator_, importance_type="gain",
                 max_num_features=20, ax=ax)
 plt.tight_layout()
 plt.show()
+
+# SEGMENTS OVERLAP! = data leakage
