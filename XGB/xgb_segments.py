@@ -1,8 +1,8 @@
 import pandas as pd
+import numpy as np
 from xgboost import XGBClassifier
 from xgboost import plot_importance
-from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split, StratifiedKFold, StratifiedGroupKFold, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import (
@@ -11,12 +11,6 @@ from sklearn.metrics import (
 )
 import matplotlib.pyplot as plt
 
-
-
-# Download latest version
-#path = kagglehub.dataset_download("sjleshrac/airlines-customer-satisfaction")
-#print(path)
-
 steam = pd.read_csv(f"Data/all_steaming_segs.csv")
 longline = pd.read_csv("Data/line_fishing_segs.csv")
 trawl = pd.read_csv("Data/trawl_fishing_segs.csv")
@@ -24,9 +18,14 @@ trawl = pd.read_csv("Data/trawl_fishing_segs.csv")
 steam["label"] = "steam"
 steam = steam.drop(columns=["steaming", "Unnamed: 0"])
 
+#longline = longline[longline["mmsi"] != 257056730]
+#trawl = trawl[trawl["mmsi"] != 257176000]
+
 df = pd.concat([steam, trawl, longline], ignore_index=True)
 print("Class distribution:\n", df["label"].value_counts())
 print("\nDtypes:\n", df.dtypes)
+
+groups = df["mmsi"].values  # keep this for the grouped splits
 
 drop_cols = ["mmsi", "gear", "trajectory_id", "segment_id", "mean_dt", "std_dt"]
 
@@ -38,8 +37,36 @@ le = LabelEncoder()
 y = le.fit_transform(df["label"])
 print("Label mapping:", dict(zip(le.classes_, le.transform(le.classes_))))
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.25, stratify=y, random_state=0
+mmsi_per_class = (
+    pd.DataFrame({"mmsi": groups, "label": df["label"]})
+      .groupby("label")["mmsi"].nunique()
+)
+print("\nUnique vessels per class:\n", mmsi_per_class)
+
+
+outer_splitter = StratifiedGroupKFold(n_splits=4, shuffle=True, random_state=0)
+train_idx, test_idx = next(outer_splitter.split(X, y, groups=groups))
+
+X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+y_train, y_test = y[train_idx], y[test_idx]
+groups_train    = groups[train_idx]
+
+# Verify the guarantee
+assert set(groups[train_idx]).isdisjoint(set(groups[test_idx])), \
+    "Vessel leakage between train and test!"
+print(f"\nTrain: {len(X_train)} segments from {len(set(groups_train))} vessels")
+print(f"Test:  {len(X_test)} segments from {len(set(groups[test_idx]))} vessels")
+
+# -----------------------------------------------------------------------------
+# 4. Grid search with grouped CV
+# -----------------------------------------------------------------------------
+xgb = XGBClassifier(
+    objective="multi:softprob",
+    num_class=len(le.classes_),
+    tree_method="hist",
+    eval_metric="mlogloss",
+    random_state=0,
+    n_jobs=-1,
 )
 
 cv_params = {
@@ -53,23 +80,11 @@ cv_params = {
 
 scoring = ["accuracy", "precision_macro", "recall_macro", "f1_macro"]
 
-# -----------------------------------------------------------------------------
-# 4. Grid-searched XGB baseline
-# -----------------------------------------------------------------------------
-xgb = XGBClassifier(
-    objective="multi:softprob",
-    num_class=len(le.classes_),
-    tree_method="hist",          # fast, good default
-    eval_metric="mlogloss",
-    random_state=0,
-    n_jobs=-1,
-)
-
 xgb_cv = GridSearchCV(
     xgb,
     cv_params,
     scoring=scoring,
-    cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=0),
+    cv=StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=0),
     refit="f1_macro",
     n_jobs=-1,
     verbose=1,
@@ -77,7 +92,12 @@ xgb_cv = GridSearchCV(
 
 sample_weight_train = compute_sample_weight(class_weight="balanced", y=y_train)
 
-xgb_cv.fit(X_train, y_train, sample_weight=sample_weight_train)
+# GridSearchCV forwards `groups` to the CV splitter
+xgb_cv.fit(
+    X_train, y_train,
+    sample_weight=sample_weight_train,
+    groups=groups_train,
+)
 
 print("\nBest params:", xgb_cv.best_params_)
 print(f"Best CV f1_macro: {xgb_cv.best_score_:.4f}")
@@ -112,3 +132,14 @@ plot_importance(xgb_cv.best_estimator_, importance_type="gain",
                 max_num_features=20, ax=ax)
 plt.tight_layout()
 plt.show()
+
+# Evaluate on hold-out mmsi
+
+""" test_liner = pd.read_csv("XGB/test_segments_trawl.csv")
+X_check = test_liner.drop(columns=["label", "mmsi", "trajectory_id", "segment_id"])
+
+y_check = xgb_cv.predict(X_check)
+seg_check_ids = np.arange(len(y_check))
+
+checked = pd.DataFrame({"segment_id": seg_check_ids, "pred": y_check})
+checked.to_csv("checked_trawl.csv", index=False) """

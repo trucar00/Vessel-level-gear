@@ -1,6 +1,17 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
+
+mmsi_holdout = 257056730
+
+df = pd.read_csv("Data/line_jan_2024.csv")
+
+df_test_mmsi = df.loc[df["mmsi"] == mmsi_holdout]
+df_test_mmsi["date_time_utc"] = pd.to_datetime(df_test_mmsi["date_time_utc"])
+df_test_mmsi = df_test_mmsi.sort_values(by="date_time_utc")
+print(df_test_mmsi.head())
+plt.plot(df_test_mmsi["lon"], df_test_mmsi["lat"])
+plt.show()
 
 # -- HELPER FUNCTIONS --
 def haversine(lat1, lon1, lat2, lon2):
@@ -31,34 +42,14 @@ def angle_wrap(a):
 
 # READY FOR CREATING SEGMENTS
 
-def remove_vessels_few_days(df, days=5):
-    span = df.groupby("mmsi")["date_time_utc"].agg(["min", "max"])
-
-    span["duration_days"] = (span["max"] - span["min"]).dt.total_seconds() / (3600 * 24)
-    valid_mmsi = span[span["duration_days"] >= days].index
-
-    # Filter original dataframe
-    df_filtered = df[df["mmsi"].isin(valid_mmsi)]
-    return df_filtered
-
-
-GEAR = "trawl"
-TW = 2
-SLIDE = 1
-
-df = pd.read_csv(f"Data/{GEAR}_jan_2024.csv")
-df["date_time_utc"] = pd.to_datetime(df["date_time_utc"])
-df = remove_vessels_few_days(df)
-df["traj_num"] = df["trajectory_id"].astype(str).str.rsplit("-", n=1).str[-1].astype(int)
-
-df = df.sort_values(["mmsi", "traj_num", "date_time_utc"])
-
-window = pd.Timedelta(hours=TW)
-slide = pd.Timedelta(hours=SLIDE)
+window = pd.Timedelta(hours=2)
+slide = pd.Timedelta(hours=1)
 
 all_segments = []
+all_segment_messages = []
+segment_id = 0
 
-for traj_id, d in tqdm(df.groupby("trajectory_id", sort=False)):
+for traj_id, d in df_test_mmsi.groupby("trajectory_id", sort=False):
     d = d.sort_values("date_time_utc")
     d["dt"] = d["date_time_utc"].diff().dt.total_seconds()
     # Generate features on trajectory level
@@ -90,7 +81,7 @@ for traj_id, d in tqdm(df.groupby("trajectory_id", sort=False)):
 
     start = d["date_time_utc"].iloc[0]
     end = start + window
-    segment_id = 0
+    
     while end < d["date_time_utc"].iloc[-1]:
         segment = d[
             (d["date_time_utc"] >= start) &
@@ -104,6 +95,7 @@ for traj_id, d in tqdm(df.groupby("trajectory_id", sort=False)):
 
         segment = segment.sort_values(by="date_time_utc")
         segment["segment_id"] = segment_id
+        all_segment_messages.append(segment)
 
         path_length = segment["dist_to_prev"].sum()
         lat_s = segment["lat"].values
@@ -112,11 +104,9 @@ for traj_id, d in tqdm(df.groupby("trajectory_id", sort=False)):
 
         all_segments.append({
             "mmsi": segment["mmsi"].iloc[0],
-            "gear": GEAR,
+            "label": "line",
             "trajectory_id": traj_id,
             "segment_id": segment_id,
-            "mean_dt": segment["dt"].mean(),
-            "std_dt": segment["dt"].std(),
 
             "mean_speed": segment["speed_calc_ms"].mean(),
             "std_speed": segment["speed_calc_ms"].std(),
@@ -142,7 +132,14 @@ for traj_id, d in tqdm(df.groupby("trajectory_id", sort=False)):
         end += slide
 
 df_segments = pd.DataFrame(all_segments)
+df_segment_messages = pd.concat(all_segment_messages, ignore_index=True)
 
-print(df_segments.shape) # fishing + steaming segments * 11 
+print(df_segments.shape)
 print(df_segments.head())
-df_segments.to_csv(f"XGB/2h/segments_{GEAR}.csv", index=False)
+
+print(df_segment_messages.shape)
+print(df_segment_messages.head())
+
+df_segments.to_csv("test_segments_line_2hwindow.csv", index=False)
+df_segment_messages.to_csv("test_segment_messages_line_2hwindow.csv", index=False)
+
