@@ -5,6 +5,12 @@ print("TensorFlow version:", tf.__version__)
 print("Built with CUDA:", tf.test.is_built_with_cuda())
 print("Visible GPUs:", gpus)
 
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+
+# Disable XLA; it fails during cuDNN autotuning on this P100.
+tf.config.optimizer.set_jit(False)
+
 from pathlib import Path
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import GroupShuffleSplit
@@ -131,7 +137,7 @@ def build_model(cfg, input_shape, num_classes):
     m.add(tf.keras.layers.Dropout(cfg["dropout"]))
     m.add(tf.keras.layers.Dense(num_classes, activation="softmax"))
     m.compile(optimizer=tf.keras.optimizers.Adam(cfg["lr"]),
-              loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+              loss="sparse_categorical_crossentropy", metrics=["accuracy"], jit_compile=False)
     return m
 
 # ---------- objective ----------
