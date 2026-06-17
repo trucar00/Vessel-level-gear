@@ -1,7 +1,11 @@
 import optuna, json
 import numpy as np, pandas as pd, tensorflow as tf
+gpus = tf.config.list_physical_devices("GPU")
+print("TensorFlow version:", tf.__version__)
+print("Built with CUDA:", tf.test.is_built_with_cuda())
+print("Visible GPUs:", gpus)
+
 from pathlib import Path
-from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.utils.class_weight import compute_class_weight
@@ -86,7 +90,7 @@ def build_windows(files, window, slide):
     X, y, groups = [], [], []
     for f in files:
         df = add_features_and_remove_val_test_mmsis(pd.read_parquet(f, engine="pyarrow"))
-        for _, d in tqdm(df.groupby("segment_id", sort=False), leave=False):
+        for _, d in df.groupby("segment_id", sort=False):
             d = d.sort_values("date_time_utc")
             gear, mmsi = d["report"].iloc[0], d["mmsi"].iloc[0]
             arr = d[FEATURES].to_numpy(dtype=np.float32)
