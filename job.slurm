@@ -12,7 +12,7 @@
 #SBATCH --mail-type=ALL
 
 # Go to submission folder
-cd ~/MODELS/LSTM
+cd ~/MODELS/Gear_cnn/Vessel-level-gear
 
 # Load Python
 module purge
@@ -22,4 +22,4 @@ module load Python/3.11.5-GCCcore-13.2.0
 source ~/venv/py311/bin/activate # VENV FOR GPU
 
 # Run your script
-python -u lstm_train_test_5runs.py
+python -u cnn_tune.py
