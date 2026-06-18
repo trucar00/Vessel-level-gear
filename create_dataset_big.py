@@ -160,7 +160,7 @@ y_train = meta_train["gear"].to_numpy()
 groups_train = meta_train["mmsi"].to_numpy()
 print(pd.Series(y_train).value_counts())
 
-X_val, meta_val = build_windows(VAL_TEST_FILES, mmsis=val_mmsis, slide=TRAIN_SLIDE)
+X_val, meta_val = build_windows(VAL_TEST_FILES, mmsis=val_mmsis, slide=TEST_SLIDE)
 print("X_val:", X_val.shape)
 y_val = meta_val["gear"].to_numpy()
 groups_val = meta_val["mmsi"].to_numpy()
