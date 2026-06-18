@@ -72,8 +72,10 @@ print("Class weights:", class_weight)
 
 def build_model(input_shape, num_classes):
     inp = tf.keras.layers.Input(shape=input_shape)          # (120, 10)
-    feats = inp[..., :input_shape[-1]-1]                    # 9 features
-    mask  = inp[..., input_shape[-1]-1:]                    # (120, 1)
+    n_features = input_shape[-1] - 1
+
+    feats = tf.keras.layers.Lambda(lambda z: z[:, :, :n_features], name="features")(inp)
+    mask  = tf.keras.layers.Lambda(lambda z: z[:, :, n_features:], name="mask")(inp)
 
     x = tf.keras.layers.Conv1D(64, 5, padding="same", activation="relu")(feats)
     x = tf.keras.layers.BatchNormalization()(x)
@@ -141,7 +143,8 @@ history = model.fit(
     verbose=2,
 )
 
-model.save("gear_cnn_2023_train.keras")
+model.save_weights("gear_cnn_2023_train_weights.h5")
+joblib.dump(label_encoder, "gear_label_encoder.joblib")
 
 # Predict UNSEEN
 y_prob_unseen = model.predict(X_test_unseen, verbose=0)

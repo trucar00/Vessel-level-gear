@@ -174,7 +174,7 @@ print(pd.Series(y_test_unseen).value_counts())
 
 
 random.seed(42)
-train_mmsis_list = random.sample(sorted(train_mmsis), k=len(train_mmsis) // 4)
+train_mmsis_list = random.sample(sorted(train_mmsis), k=len(train_mmsis) // 2)
 print(f"Nr of train mmsis to use for seen test: ", len(train_mmsis_list))
 
 X_test_seen, meta_test_seen = build_windows(VAL_TEST_FILES, mmsis=train_mmsis_list, slide=TEST_SLIDE)
