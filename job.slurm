@@ -5,9 +5,9 @@
 #SBATCH --time=06:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --output=output_CNN_%j.txt
-#SBATCH --job-name=CNN_gear_tune_test
+#SBATCH --job-name=CNN_gear_scale
 #SBATCH --mail-user=trulsc00@gmail.com
 #SBATCH --mail-type=ALL
 
@@ -85,4 +85,4 @@ print("Tensor device:", y.device)
 PY
 
 # Run Optuna tuning
-python -u cnn_tune.py
+python -u cnn_model_scale.py
