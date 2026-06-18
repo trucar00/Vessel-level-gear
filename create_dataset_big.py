@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
 import random
 from pathlib import Path
 import pickle
@@ -133,7 +132,7 @@ def build_windows(files, mmsis, slide):
         df = pd.read_parquet(f, engine="pyarrow")
         df = add_features(df, mmsis)
         df[FEATURES] = (df[FEATURES] - mu) / sigma
-        for seg_id, d in tqdm(df.groupby("segment_id", sort=False)):
+        for seg_id, d in df.groupby("segment_id", sort=False):
             d = d.sort_values("date_time_utc")
             gear  = d["report"].iloc[0]
             mmsi  = int(d["mmsi"].iloc[0])
