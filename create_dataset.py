@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-WINDOW = 60
-SLIDE  = 30
+WINDOW = 120
+SLIDE  = 60
+
+# CREATE tr
 
 GEARS = ["Trål", "Krokredskap", "Not", "Snurrevad", "Garn"]
 
@@ -16,6 +18,7 @@ FILES = ["2024_1_3_feats.parquet"]   # add the other quarters here
 
 def add_features(df):
     df["date_time_utc"] = pd.to_datetime(df["date_time_utc"])
+    df.loc[df['report'] == 'Not', 'report'] = 'Snurrevad'
     df = df[df["report"].isin(GEARS)]
     m = df["date_time_utc"].dt.month
     df["month_sin"] = np.sin(2 * np.pi * m / 12)
@@ -55,6 +58,6 @@ X, y, groups = build_windows(FILES)
 print("X:", X.shape)
 print(pd.Series(y).value_counts())
 
-np.save("X_gear.npy", X)
-np.save("y_gear.npy", y)
-np.save("groups_gear.npy", groups)
+np.save("datasets/X_gear.npy", X)
+np.save("datasets/y_gear.npy", y)
+np.save("datasets/groups_gear.npy", groups)

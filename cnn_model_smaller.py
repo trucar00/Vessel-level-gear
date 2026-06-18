@@ -112,16 +112,23 @@ def build_model(input_shape, num_classes):
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=input_shape),
 
-        tf.keras.layers.Conv1D(64, kernel_size=5, padding="same", activation="relu"),
+        tf.keras.layers.Conv1D(
+            filters=64,
+            kernel_size=5,
+            padding="same",
+            activation="relu"
+        ),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling1D(pool_size=2),
 
-        tf.keras.layers.Conv1D(128, kernel_size=3, padding="same", activation="relu"),
+        tf.keras.layers.Conv1D(
+            filters=128,
+            kernel_size=3,
+            padding="same",
+            activation="relu"
+        ),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling1D(pool_size=2),
-
-        tf.keras.layers.Conv1D(128, kernel_size=3, padding="same", activation="relu"),
-        tf.keras.layers.BatchNormalization(),
 
         tf.keras.layers.GlobalAveragePooling1D(),
 

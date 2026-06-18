@@ -5,3 +5,10 @@ mess/
 XGB/
 win_cache/
 old/
+*.parquet
+*.keras
+*.joblib
+datasets/
+*.npy
+blah.py
+
