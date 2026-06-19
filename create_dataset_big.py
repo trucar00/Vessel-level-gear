@@ -7,7 +7,7 @@ import gc
 
 # CREATE train, validation and test. Exclude global validation and test mmsis. 
 
-GEARS = ["Trål", "Krokredskap", "Snurrevad", "Garn"]
+GEARS = ["Trål", "Krokredskap", "Snurrevad", "Garn", "Not"]
 
 BASE_FEATURES   = ["cog_interp_sin", "cog_interp_cos", "speed_calc_ms", "ra_accel", "ra_jerk", "log_dist", "ra_dcog"]
 SEASON_FEATURES = ["month_sin", "month_cos"]
@@ -56,7 +56,7 @@ print(f"Train (all 2023) vessels: {len(train_mmsis)} | Val (2024) vessels: {len(
 
 def add_features(df, mmsis):
     df["date_time_utc"] = pd.to_datetime(df["date_time_utc"])
-    df.loc[df['report'] == 'Not', 'report'] = 'Snurrevad' # TRY BOTH WITH AND WITHOUT NOT AS SNURREVAD, many not reports are in fact snurrevad...
+    #df.loc[df['report'] == 'Not', 'report'] = 'Snurrevad' # TRY BOTH WITH AND WITHOUT NOT AS SNURREVAD, many not reports are in fact snurrevad...
     df = df[df["mmsi"].isin(mmsis)]
     df = df[df["report"].isin(GEARS)]
     m = df["date_time_utc"].dt.month
@@ -67,7 +67,7 @@ def add_features(df, mmsis):
 # ------------------------------------------------------------------
 # Normalization stats -- fit on TRAIN (2023) only
 # ------------------------------------------------------------------
-def get_mu_sigma(mu_sigma_path="parameters_cnn_gear_2023_train.pkl"):
+def get_mu_sigma(mu_sigma_path="parameters_cnn_gear_2023_train_all.pkl"):
     mu_sigma_path = Path(f"{mu_sigma_path}")
     if mu_sigma_path.exists():
         print(f"Loading mu/sigma from {mu_sigma_path}")
@@ -84,7 +84,7 @@ def get_mu_sigma(mu_sigma_path="parameters_cnn_gear_2023_train.pkl"):
             print("mmsis in training param df before: ", df["mmsi"].nunique())
             df["mmsi"] = df["mmsi"].astype("int64")
             df = df[df["mmsi"].isin(train_mmsis)]
-            df.loc[df["report"] == "Not", "report"] = "Snurrevad"
+            #df.loc[df["report"] == "Not", "report"] = "Snurrevad"
             df = df[df["report"].isin(GEARS)]
             print("mmsis in training param df after: ", df["mmsi"].nunique())
             df["date_time_utc"] = pd.to_datetime(df["date_time_utc"])
@@ -184,20 +184,20 @@ groups_test_seen = meta_test_seen["mmsi"].to_numpy()
 print(pd.Series(y_test_seen).value_counts())
 
 
-np.save("datasets/X_train.npy", X_train)
-np.save("datasets/y_train.npy", y_train)
-np.save("datasets/groups_train.npy", groups_train)
+np.save("datasets/X_train_all.npy", X_train)
+np.save("datasets/y_train_all.npy", y_train)
+np.save("datasets/groups_train_all.npy", groups_train)
 
-np.save("datasets/X_val.npy", X_val)
-np.save("datasets/y_val.npy", y_val)
-np.save("datasets/groups_val.npy", groups_val)
+np.save("datasets/X_val_all.npy", X_val)
+np.save("datasets/y_val_all.npy", y_val)
+np.save("datasets/groups_val_all.npy", groups_val)
 
-np.save("datasets/X_test_unseen.npy", X_test_unseen)
-np.save("datasets/y_test_unseen.npy", y_test_unseen)
-np.save("datasets/groups_test_unseen.npy", groups_test_unseen)
-meta_test_unseen.to_parquet("datasets/meta_test_unseen.parquet", index=False)
+np.save("datasets/X_test_unseen_all.npy", X_test_unseen)
+np.save("datasets/y_test_unseen_all.npy", y_test_unseen)
+np.save("datasets/groups_test_unseen_all.npy", groups_test_unseen)
+meta_test_unseen.to_parquet("datasets/meta_test_unseen_all.parquet", index=False)
 
-np.save("datasets/X_test_seen.npy", X_test_seen)
-np.save("datasets/y_test_seen.npy", y_test_seen)
-np.save("datasets/groups_test_seen.npy", groups_test_seen)
-meta_test_seen.to_parquet("datasets/meta_test_seen.parquet", index=False)
+np.save("datasets/X_test_seen_all.npy", X_test_seen)
+np.save("datasets/y_test_seen_all.npy", y_test_seen)
+np.save("datasets/groups_test_seen_all.npy", groups_test_seen)
+meta_test_seen.to_parquet("datasets/meta_test_seen_all.parquet", index=False)

@@ -9,21 +9,21 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.model_selection import StratifiedGroupKFold
 import joblib
 
-X_train = np.load("datasets/X_train.npy")
-y_train = np.load("datasets/y_train.npy", allow_pickle=True)
-groups_train = np.load("datasets/groups_train.npy")
+X_train = np.load("datasets/X_train_all.npy")
+y_train = np.load("datasets/y_train_all.npy", allow_pickle=True)
+groups_train = np.load("datasets/groups_train_all.npy")
 
-X_val = np.load("datasets/X_val.npy")
-y_val = np.load("datasets/y_val.npy", allow_pickle=True)
-groups_val = np.load("datasets/groups_val.npy")
+X_val = np.load("datasets/X_val_all.npy")
+y_val = np.load("datasets/y_val_all.npy", allow_pickle=True)
+groups_val = np.load("datasets/groups_val_all.npy")
 
-X_test_unseen = np.load("datasets/X_test_unseen.npy")
-y_test_unseen = np.load("datasets/y_test_unseen.npy", allow_pickle=True)
-groups_test_unseen = np.load("datasets/groups_test_unseen.npy")
+X_test_unseen = np.load("datasets/X_test_unseen_all.npy")
+y_test_unseen = np.load("datasets/y_test_unseen_all.npy", allow_pickle=True)
+groups_test_unseen = np.load("datasets/groups_test_unseen_all.npy")
 
-X_test_seen = np.load("datasets/X_test_seen.npy")
-y_test_seen = np.load("datasets/y_test_seen.npy", allow_pickle=True)
-groups_test_seen = np.load("datasets/groups_test_seen.npy")
+X_test_seen = np.load("datasets/X_test_seen_all.npy")
+y_test_seen = np.load("datasets/y_test_seen_all.npy", allow_pickle=True)
+groups_test_seen = np.load("datasets/groups_test_seen_all.npy")
 
 # Encode gear labels: strings -> integers
 label_encoder = LabelEncoder().fit(y_train)
