@@ -9,23 +9,23 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.model_selection import StratifiedGroupKFold
 import joblib
 
-X_train = np.load("datasets/X_train_all.npy")
-y_train = np.load("datasets/y_train_all.npy", allow_pickle=True)
-groups_train = np.load("datasets/groups_train_all.npy")
+X_train = np.load("datasets/X_train.npy")
+y_train = np.load("datasets/y_train.npy", allow_pickle=True)
+groups_train = np.load("datasets/groups_train.npy")
 
-X_val = np.load("datasets/X_val_all.npy")
-y_val = np.load("datasets/y_val_all.npy", allow_pickle=True)
-groups_val = np.load("datasets/groups_val_all.npy")
+X_val = np.load("datasets/X_val.npy")
+y_val = np.load("datasets/y_val.npy", allow_pickle=True)
+groups_val = np.load("datasets/groups_val.npy")
 
-X_test_unseen = np.load("datasets/X_test_unseen_all.npy")
-y_test_unseen = np.load("datasets/y_test_unseen_all.npy", allow_pickle=True)
-groups_test_unseen = np.load("datasets/groups_test_unseen_all.npy")
-meta_test_unseen = pd.read_parquet("datasets/meta_test_unseen_all.parquet", engine="pyarrow")
+X_test_unseen = np.load("datasets/X_test_unseen.npy")
+y_test_unseen = np.load("datasets/y_test_unseen.npy", allow_pickle=True)
+groups_test_unseen = np.load("datasets/groups_test_unseen.npy")
+meta_test_unseen = pd.read_parquet("datasets/meta_test_unseen.parquet", engine="pyarrow")
 
-X_test_seen = np.load("datasets/X_test_seen_all.npy")
-y_test_seen = np.load("datasets/y_test_seen_all.npy", allow_pickle=True)
-groups_test_seen = np.load("datasets/groups_test_seen_all.npy")
-meta_test_seen = pd.read_parquet("datasets/meta_test_seen_all.parquet", engine="pyarrow")
+X_test_seen = np.load("datasets/X_test_seen.npy")
+y_test_seen = np.load("datasets/y_test_seen.npy", allow_pickle=True)
+groups_test_seen = np.load("datasets/groups_test_seen.npy")
+meta_test_seen = pd.read_parquet("datasets/meta_test_seen.parquet", engine="pyarrow")
 
 # Encode gear labels: strings -> integers
 label_encoder = LabelEncoder().fit(y_train)
@@ -190,7 +190,7 @@ for i, cls in enumerate(class_names):
     meta_pred_unseen[f"prob_{cls}"] = y_prob_unseen[:, i]
 
 meta_pred_unseen.to_parquet(
-    "datasets/meta_test_unseen_predictions_all.parquet",
+    "datasets/meta_test_unseen_predictions.parquet",
     index=False
 )
 
@@ -237,7 +237,7 @@ for i, cls in enumerate(class_names):
     meta_pred_seen[f"prob_{cls}"] = y_prob_seen[:, i]
 
 meta_pred_seen.to_parquet(
-    "datasets/meta_test_seen_predictions_all.parquet",
+    "datasets/meta_test_seen_predictions.parquet",
     index=False
 )
 

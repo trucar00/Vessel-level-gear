@@ -85,5 +85,5 @@ print("Tensor device:", y.device)
 PY
 
 # Run Optuna tuning
-python -u create_dataset_big.py
+#python -u create_dataset_big.py
 python -u cnn_model_scale.py
