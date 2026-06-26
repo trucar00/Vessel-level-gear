@@ -2,12 +2,12 @@
 #SBATCH --account=share-ie-itk
 #SBATCH --partition=GPUQ
 #SBATCH --gres=gpu:1
-#SBATCH --time=06:00:00
+#SBATCH --time=04:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=128G
-#SBATCH --output=output_CNN_not_snurr_%j.txt
-#SBATCH --job-name=CNN_gear_not_snurr_sep
+#SBATCH --output=output_CNN_FINAL_%j.txt
+#SBATCH --job-name=CNN_FINAL
 #SBATCH --mail-user=trulsc00@gmail.com
 #SBATCH --mail-type=ALL
 
@@ -85,5 +85,5 @@ print("Tensor device:", y.device)
 PY
 
 # Run Optuna tuning
-#python -u create_dataset_big.py
+python -u create_dataset_big.py
 python -u cnn_model_scale.py

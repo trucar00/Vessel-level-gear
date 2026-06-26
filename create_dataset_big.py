@@ -67,7 +67,7 @@ def add_features(df, mmsis):
 # ------------------------------------------------------------------
 # Normalization stats -- fit on TRAIN (2023) only
 # ------------------------------------------------------------------
-def get_mu_sigma(mu_sigma_path="parameters_cnn_gear_2023_train_all.pkl"):
+def get_mu_sigma(mu_sigma_path="parameters_cnn_gear_2023_train_all_FINAL.pkl"):
     mu_sigma_path = Path(f"{mu_sigma_path}")
     if mu_sigma_path.exists():
         print(f"Loading mu/sigma from {mu_sigma_path}")

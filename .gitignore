@@ -11,4 +11,5 @@ old/
 datasets/
 *.npy
 blah.py
+plot/
 
